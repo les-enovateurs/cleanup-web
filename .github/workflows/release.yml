@@ -16,11 +16,13 @@ jobs:
       uses: Nuitka/Nuitka-Action@main
       with:
         script-name: main.py
-        onefile: true
         standalone: true
-        enable-console: false
+        onefile: true
+        windows-icon-from-ico: # Remove if you don't have an icon file
+        output-dir: build
         output-file: email_parser_windows
         include-data-files: requirements.txt=requirements.txt
+        disable-console: true
 
     - uses: actions/upload-artifact@v4
       with:
