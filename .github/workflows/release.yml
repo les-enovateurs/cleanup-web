@@ -13,22 +13,26 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Package Application for Windows
-      uses: JackMcKew/pyinstaller-action-windows@main
+      uses: Nuitka/Nuitka-Action@main
       with:
-        path: .
-        spec: windows.spec
+        script-name: main.py
+        onefile: true
+        standalone: true
+        enable-console: false
+        output-file: email_parser_windows
+        include-data-files: requirements.txt=requirements.txt
 
     - uses: actions/upload-artifact@v4
       with:
         name: email_parser_windows
-        path: dist/windows
+        path: build/email_parser_windows.exe
         retention-days: 5
 
     - name: Upload to Release
       if: github.event_name == 'release'
       uses: softprops/action-gh-release@v1
       with:
-        files: dist/windows/email_parser_windows.exe
+        files: build/email_parser_windows.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
