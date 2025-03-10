@@ -28,21 +28,13 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --onefile --name email_parser_windows --windowed --add-data "requirements.txt;." main.py
+          pyinstaller --onefile --name cleanup-web_windows --windowed --add-data "requirements.txt;." main.py
 
       - uses: actions/upload-artifact@v4
         with:
-          name: email_parser_windows
-          path: dist/email_parser_windows.exe
-          retention-days: 5
-
-      - name: Upload to Release
-        if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: dist/email_parser_windows.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: cleanup-web_windows
+          path: dist/cleanup-web_windows.exe
+          retention-days: 1
 
   linux:
     runs-on: ubuntu-latest
@@ -67,21 +59,13 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --onefile --name email_parser_linux --windowed --add-data "requirements.txt:." main.py
+          pyinstaller --onefile --name cleanup-web_linux --windowed --add-data "requirements.txt:." main.py
 
       - uses: actions/upload-artifact@v4
         with:
-          name: email_parser_linux
-          path: dist/email_parser_linux
-          retention-days: 5
-
-      - name: Upload to Release
-        if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: dist/email_parser_linux
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: cleanup-web_linux
+          path: dist/cleanup-web_linux
+          retention-days: 1
 
   macos:
     runs-on: macos-latest
@@ -101,42 +85,10 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --onefile --name email_parser_macos --windowed --add-data "requirements.txt:." main.py
+          pyinstaller --onefile --name cleanup-web_macos --windowed --add-data "requirements.txt:." main.py
 
       - uses: actions/upload-artifact@v4
         with:
-          name: email_parser_macos
-          path: dist/email_parser_macos
-          retention-days: 5
-
-      - name: Upload to Release
-        if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: dist/email_parser_macos
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  checksums:
-    needs: [windows, linux, macos]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release'
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist
-
-      - name: Generate SHA-256 checksums
-        run: |
-          cd dist
-          for file in */*; do
-            sha256sum "$file" > "${file}.sha256"
-          done
-
-      - name: Upload checksums
-        uses: softprops/action-gh-release@v1
-        with:
-          files: dist/*/*.sha256
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          name: cleanup-web_macos
+          path: dist/cleanup-web_macos
+          retention-days: 1
