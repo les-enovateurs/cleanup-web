@@ -1,4 +1,4 @@
-name: Package Application with PyInstaller
+name: Package Application with Nuitka
 
 on:
   release:
@@ -7,106 +7,79 @@ on:
     branches: [ main ]
 
 jobs:
-  windows:
-    runs-on: windows-latest
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - os: macos-latest
+            artifact_name: email_parser_macos
+          - os: ubuntu-latest
+            artifact_name: email_parser_linux
+          - os: windows-latest
+            artifact_name: email_parser_windows
+
+    runs-on: ${{ matrix.os }}
+
     steps:
-    - uses: actions/checkout@v4
+      - name: Check-out repository
+        uses: actions/checkout@v4
 
-    - name: Package Application for Windows
-      uses: JackMcKew/pyinstaller-action-windows@main
-      with:
-        path: .
-        spec: windows.spec
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          architecture: 'x64'
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements*.txt
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: email_parser_windows
-        path: dist/windows
-        retention-days: 5
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Upload to Release
-      if: github.event_name == 'release'
-      uses: softprops/action-gh-release@v1
-      with:
-        files: dist/windows/email_parser_windows.exe
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Linux Dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxcb-xinerama0
 
-  linux:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
+      - name: Build Executable
+        uses: Nuitka/Nuitka-Action@main
+        with:
+          nuitka-version: main
+          script-name: main.py
+          onefile: true
+          standalone: true
+          enable-plugins: pyqt6
+          output-file: ${{ matrix.artifact_name }}
+          mode: app
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            build/*.exe
+            build/*.bin
+            build/*.app/**/*
+          retention-days: 5
+          include-hidden-files: true
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pyinstaller
-
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libxcb-xinerama0
-
-    - name: Build with PyInstaller
-      run: |
-        pyinstaller --onefile --name email_parser_linux --windowed --add-data "requirements.txt:." main.py
-
-    - uses: actions/upload-artifact@v4
-      with:
-        name: email_parser_linux
-        path: dist/email_parser_linux
-        retention-days: 5
-
-    - name: Upload to Release
-      if: github.event_name == 'release'
-      uses: softprops/action-gh-release@v1
-      with:
-        files: dist/email_parser_linux
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  macos:
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pyinstaller
-
-    - name: Build with PyInstaller
-      run: |
-        pyinstaller --onefile --name email_parser_macos --windowed --add-data "requirements.txt:." main.py
-
-    - uses: actions/upload-artifact@v4
-      with:
-        name: email_parser_macos
-        path: dist/email_parser_macos
-        retention-days: 5
-
-    - name: Upload to Release
-      if: github.event_name == 'release'
-      uses: softprops/action-gh-release@v1
-      with:
-        files: dist/email_parser_macos
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/*.exe
+            build/*.bin
+            build/*.app/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   checksums:
-    needs: [windows, linux, macos]
+    needs: [build]
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
     steps:
