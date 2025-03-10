@@ -44,15 +44,12 @@ jobs:
             build/*.exe
             build/*.bin
             build/*.app/**/*
-          include-hidden-files: true
 
       - name: Upload to Release
         if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             build/*.exe
             build/*.bin
             build/*.app/**/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
