@@ -22,8 +22,8 @@ The Email Export Parser helps you analyze email exports (such as those from Gmai
 
 1. Clone this repository:
    ```
-   git clone https://github.com/yourusername/email-export-parser.git
-   cd email-export-parser
+   git clone https://github.com/les-enovateurs/cleanup-web
+   cd cleanup-web
    ```
 
 2. Install the required dependencies:
@@ -83,7 +83,7 @@ The tool generates two main output files:
 
 ## License
 
-[MIT License](LICENSE)
+[AGPL 3.0 License](LICENSE)
 
 ## Contributing
 
